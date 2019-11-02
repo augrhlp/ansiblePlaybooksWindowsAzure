@@ -1,0 +1,18 @@
+- hosts: windowshosts
+  become: true
+  become_user: User
+  vars_files:
+    - vars/upload_ssh_pub_key.yml
+  tasks:
+  - name: make ssh directory or check if it existss
+    win_file:
+      path: C:\ProgramData\ssh
+      state: directory
+  - name: create public key file
+    win_file:
+      path: C:\ProgramData\ssh\administrators_authorized_keys
+      state: touch
+  - name: add public key to pubic key file
+    win_lineinfile:
+      path: C:\ProgramData\ssh\administrators_authorized_keys
+      line: "{{ publickey }}"

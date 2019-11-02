@@ -1,0 +1,6 @@
+- hosts: windowshosts
+  tasks:
+    - name: insall git
+      win_chocolatey:
+        name: git
+        state: present

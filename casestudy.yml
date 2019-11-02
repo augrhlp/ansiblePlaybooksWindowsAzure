@@ -1,0 +1,3 @@
+- import_playbook: installgit.yml
+- import_playbook: installssh.yml
+- import_playbook: upload_ssh_pub_key.yml
