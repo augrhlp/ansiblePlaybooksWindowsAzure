@@ -1,6 +1,4 @@
 - hosts: windowshosts
-  become: true
-  become_user: User
   tasks:
   - name: install Win32-OpenSSH
     win_chocolatey:

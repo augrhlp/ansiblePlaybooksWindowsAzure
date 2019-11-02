@@ -1,0 +1,81 @@
+# Below playbook has been inspired by from https://github.com/Azure-Samples/ansible-playbooks/blob/master/vm_create_windows.yml
+- hosts: localhost
+  vars:
+    resource_group: MyWinGroup
+    vm_name: winTestVM
+# Below is UTF-16 Base64 encoding for:
+# Invoke-Expression -Command ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1')); Enable-WSManCredSSP -Role Server -Force
+    winrm_enable_script: SQBuAHYAbwBrAGUALQBFAHgAcAByAGUAcwBzAGkAbwBuACAALQBDAG8AbQBtAGEAbgBkACAAKAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAQwBsAGkAZQBuAHQAKQAuAEQAbwB3AG4AbABvAGEAZABTAHQAcgBpAG4AZwAoACcAaAB0AHQAcABzADoALwAvAHIAYQB3AC4AZwBpAHQAaAB1AGIAdQBzAGUAcgBjAG8AbgB0AGUAbgB0AC4AYwBvAG0ALwBhAG4AcwBpAGIAbABlAC8AYQBuAHMAaQBiAGwAZQAvAGQAZQB2AGUAbAAvAGUAeABhAG0AcABsAGUAcwAvAHMAYwByAGkAcAB0AHMALwBDAG8AbgBmAGkAZwB1AHIAZQBSAGUAbQBvAHQAaQBuAGcARgBvAHIAQQBuAHMAaQBiAGwAZQAuAHAAcwAxACcAKQApADsAIABFAG4AYQBiAGwAZQAtAFcAUwBNAGEAbgBDAHIAZQBkAFMAUwBQACAALQBSAG8AbABlACAAUwBlAHIAdgBlAHIAIAAtAEYAbwByAGMAZQA=
+  tasks:
+  - name: create network in resource group
+    azure_rm_virtualnetwork:
+      name: "{{vm_name}}"
+      resource_group: "{{resource_group}}"
+      address_prefixes_cidr:
+      - 10.1.0.0/16
+      state: present
+  - name: create Azure subnet in virtualnetwork
+    azure_rm_subnet:
+      name: "{{vm_name}}"
+      state: present
+      virtual_network_name: winTestVM
+      resource_group: "{{resource_group}}"
+      address_prefix_cidr: 10.1.0.0/24
+  - name: Create Windows 10 VM
+    azure_rm_virtualmachine:
+      resource_group: "{{resource_group}}"
+      name: "{{vm_name}}"
+      admin_username: MyAdminUser
+      admin_password: H3ll0W0rld!
+      vm_size: Standard_DS2_v2
+      os_type: Windows
+      image:
+        offer: Windows-10
+        publisher: MicrosoftWindowsDesktop
+        sku: '19h1-ent'
+        version: '18362.418.1910070306'
+        # Create a security group
+  - azure_rm_securitygroup:
+      resource_group: "{{resource_group}}"
+      name: "{{vm_name}}"
+      purge_rules: yes
+      rules:
+      - name: 'AllowWinDRM_HTTP'
+        protocol: Tcp
+        destination_port_range: 5985
+        access: Allow
+        priority: 100
+        direction: Inbound
+      - name: 'AllowWinDRM_HTTPS'
+        protocol: Tcp
+        destination_port_range: 5986
+        access: Allow
+        priority: 105
+        direction: Inbound
+      - name: 'AllowSSH'
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 110
+        direction: Inbound
+      - name: 'AllowRDP'
+        protocol: Tcp
+        destination_port_range: 3389
+        access: Allow
+        priority: 115
+        direction: Inbound
+  - name: create Azure vm extension to enable WinRM listener
+    azure_rm_virtualmachineextension:
+      name: winrm-extension
+      resource_group: "{{resource_group}}"
+      virtual_machine_name: "{{vm_name}}"
+      publisher: Microsoft.Compute
+      virtual_machine_extension_type: CustomScriptExtension
+      type_handler_version: 1.9
+      settings: '{"commandToExecute": "powershell.exe -ExecutionPolicy ByPass -EncodedCommand {{winrm_enable_script}}"}'
+      auto_upgrade_minor_version: no
+  - name: wait for the WinRM port to come online
+    wait_for:
+      port: 5986
+      host: '{{azure_vm.properties.networkProfile.networkInterfaces[0].properties.ipConfigurations[0].properties.publicIPAddress.properties.ipAddress}}'
+      timeout: 600

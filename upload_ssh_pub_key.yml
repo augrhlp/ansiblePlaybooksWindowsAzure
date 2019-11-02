@@ -1,6 +1,4 @@
 - hosts: windowshosts
-  become: true
-  become_user: User
   vars_files:
     - vars/upload_ssh_pub_key.yml
   tasks:
