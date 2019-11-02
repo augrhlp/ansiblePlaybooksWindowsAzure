@@ -40,3 +40,13 @@ The paths in the `./upload_ssh_pub_key.yml` playbook are the default paths for a
 Using the command line, after cloning the repository, to your control machine from the root path of the repository launch the following line.
 
 `ansible-playbook -i ./inventories/case_study/hosts.yml casestudy.yml`
+
+## Bonus 1 code
+
+in `provisioning_azure_vm\createvm.yml` provisions an Azure Windows VM to run it simply run
+
+`ansible-playbook createvm.yml`
+
+To run the previous script against the newly created VM update the static repository in `inventories/azurevm/hosts.yml` with the correct value and run the script against that repository. Make sure the WinRM listener is listening on the public Interface of the windows VM.
+
+`ansible-playbook -i ./inventories/azurevm/hosts.yml casestudy.yml`
