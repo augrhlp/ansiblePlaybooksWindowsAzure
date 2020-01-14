@@ -41,7 +41,7 @@ Using the command line, after cloning the repository, to your control machine fr
 
 `ansible-playbook -i ./inventories/case_study/hosts.yml casestudy.yml`
 
-## Bonus 1 code
+## Azure provisioning
 
 in `provisioning_azure_vm\createvm.yml` provisions an Azure Windows VM to run it simply run
 
