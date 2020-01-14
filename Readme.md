@@ -1,6 +1,6 @@
 # motf_casestudy
 Provides an Ansible playbook to install Chocolatey, git and OpenSSH, also configure private key access SSH on a windows 10 host, using WinRM - ntlm - http on a local network.
-The [Detailed Outline of the Case Study](https://docs.google.com/document/d/e/2PACX-1vTXOR9L_wlVCBokWOIbK8nSHsd-n9ZP07dWTw4dnJ932ftMfL3v0qAaPSe2F-3bkzTWx_Iy3pbkBiIs/pub)
+
 
 ## Prerequisite
 ### Controller
